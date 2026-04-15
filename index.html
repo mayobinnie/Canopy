@@ -1034,7 +1034,123 @@
     color: var(--text-dim);
   }
 
-  /* ── ANIMATIONS ── */
+  /* ── SUITE CARDS ── */
+  .suite-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    align-items: stretch;
+  }
+  .suite-card {
+    background: var(--graphite-3);
+    padding: 36px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .suite-card-featured {
+    background: var(--graphite-4);
+    border-top: 2px solid var(--cyan);
+  }
+  .suite-badge {
+    position: absolute;
+    top: -2px;
+    right: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #111214;
+    background: var(--cyan);
+    padding: 4px 10px;
+  }
+  .suite-tier {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+  .suite-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.01em;
+  }
+  .suite-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+  .suite-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .suite-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+    background: rgba(240,244,248,0.06);
+    border: 1px solid rgba(240,244,248,0.12);
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  .suite-pill-amber {
+    color: var(--amber);
+    background: rgba(245,158,11,0.06);
+    border-color: rgba(245,158,11,0.18);
+  }
+  .suite-divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+  }
+  .suite-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    margin-bottom: 24px;
+  }
+  .suite-features li {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.5;
+    padding-left: 16px;
+    position: relative;
+  }
+  .suite-features li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 6px;
+    height: 1px;
+    background: var(--text-dim);
+  }
+  .suite-support {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
+
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -1063,13 +1179,18 @@
     .nav-links { display: none; }
     .hero { padding: 100px 20px 80px; }
     .hero-stats { position: static; margin-top: 48px; justify-content: flex-start; }
+    .hero-proof { gap: 6px 12px; }
     .section-pad { padding: 70px 20px; }
     .platform-strip { padding: 0 20px; }
-    .platform-strip-inner { grid-template-columns: 1fr; }
+    .platform-strip-inner { grid-template-columns: 1fr 1fr; }
     .platform-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .platform-item:nth-child(odd) { border-right: 1px solid var(--border); }
     .products-grid { grid-template-columns: 1fr; }
     .product-card-wide { grid-column: span 1; }
     .product-card-wide .product-inner { grid-template-columns: 1fr; gap: 32px; }
+    .suite-grid { grid-template-columns: 1fr; }
+    .suite-card-featured { border-top: 2px solid var(--cyan); border-left: none; }
+    .suite-badge { top: 16px; right: 16px; }
     .credentials-grid { grid-template-columns: 1fr 1fr; }
     .sovereign-inner { grid-template-columns: 1fr; }
     .sovereign-visual { height: 250px; }
@@ -1079,6 +1200,17 @@
     .form-row { grid-template-columns: 1fr; }
     footer { flex-direction: column; gap: 12px; text-align: center; }
     .divider { margin: 0 20px; }
+  }
+
+  @media (max-width: 600px) {
+    .hero-tagline { font-size: 14px; letter-spacing: 0.15em; }
+    .hero-proof { gap: 4px 10px; }
+    .platform-strip-inner { grid-template-columns: 1fr 1fr; }
+    .credentials-grid { grid-template-columns: 1fr; }
+    .markets-grid { grid-template-columns: 1fr; }
+    .suite-card { padding: 28px 20px; }
+    .suite-badge { top: 12px; right: 12px; }
+    .product-card { padding: 36px 24px; }
   }
 </style>
 </head>
@@ -1318,25 +1450,80 @@
   <div class="section-pad">
     <div class="section-label">Package</div>
     <h2 class="section-h2 reveal">The Canopy Defence Suite.</h2>
-    <p class="section-intro reveal">All five software platforms integrated through Canopy C2. Unified authentication, cross-product alerting, shared geospatial layer and AI intelligence across every operational domain. Suite packages offer significant savings versus individual product pricing.</p>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); margin-top: 48px;" class="reveal">
-      <div style="background: var(--graphite-3); padding: 36px 32px;">
-        <div style="font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--cyan); margin-bottom:16px;">Operational Suite</div>
-        <div style="font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:16px;">C2 Operational · Sight Monitor · Observe Survey · Beacon Professional · Suite integration layer · Unified dashboard · Cross-product alerting · Shared authentication</div>
-        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:0.1em;">STANDARD SUPPORT · QUARTERLY REVIEWS</div>
+    <p class="section-intro reveal">Six platforms integrated through Canopy C2. Unified authentication, cross-product alerting, shared geospatial layer and AI intelligence across every operational domain.</p>
+
+    <div class="suite-grid" style="margin-top:48px;">
+
+      <!-- OPERATIONAL -->
+      <div class="suite-card reveal">
+        <div class="suite-tier">01</div>
+        <div class="suite-name" style="color:var(--cyan);">Operational Suite</div>
+        <p class="suite-desc">For organisations deploying survey, safety monitoring and fire service management under a unified command layer.</p>
+        <div class="suite-products">
+          <span class="suite-pill">C2 Operational</span>
+          <span class="suite-pill">Observe Survey</span>
+          <span class="suite-pill">Sight Monitor</span>
+          <span class="suite-pill">Beacon Professional</span>
+        </div>
+        <div class="suite-divider"></div>
+        <ul class="suite-features">
+          <li>Unified authentication and single sign-on</li>
+          <li>Cross-product alerting and shared dashboard</li>
+          <li>Shared geospatial layer across all products</li>
+          <li>Standard support with quarterly reviews</li>
+        </ul>
+        <div class="suite-support">Standard Support · Quarterly Reviews</div>
       </div>
-      <div style="background: var(--graphite-3); padding: 36px 32px; border-left: 3px solid var(--cyan);">
-        <div style="font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--cyan); margin-bottom:16px;">Command Suite</div>
-        <div style="font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:16px;">C2 Command · Sight Protect · Observe Operations · Defeat Detection · Beacon Enterprise · AI intelligence across all products · Advanced drone operations · Counter-UAS detection</div>
-        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:0.1em;">PRIORITY SUPPORT 24/7 · SLA GUARANTEED</div>
+
+      <!-- COMMAND -->
+      <div class="suite-card suite-card-featured reveal">
+        <div class="suite-badge">Most Selected</div>
+        <div class="suite-tier">02</div>
+        <div class="suite-name" style="color:var(--cyan);">Command Suite</div>
+        <p class="suite-desc">For CNI operators and security teams requiring drone operations intelligence and counter-UAS detection alongside C2.</p>
+        <div class="suite-products">
+          <span class="suite-pill">C2 Command</span>
+          <span class="suite-pill">Observe Operations</span>
+          <span class="suite-pill">Defeat Detection</span>
+          <span class="suite-pill">Sight Protect</span>
+          <span class="suite-pill">Beacon Enterprise</span>
+        </div>
+        <div class="suite-divider"></div>
+        <ul class="suite-features">
+          <li>AI intelligence layer across all five products</li>
+          <li>Advanced drone operations and swarm management</li>
+          <li>Counter-UAS detection with governed engagement</li>
+          <li>Priority 24/7 support with guaranteed SLA</li>
+        </ul>
+        <div class="suite-support">Priority Support 24/7 · SLA Guaranteed</div>
       </div>
-      <div style="background: var(--graphite-3); padding: 36px 32px;">
-        <div style="font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--amber); margin-bottom:16px;">Sovereign Suite</div>
-        <div style="font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:16px;">Full enterprise tier across all products · Full EW capabilities · Unlimited scaling · Custom integrations · Dedicated defence team · On-site deployment · 99.95% SLA</div>
-        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:0.1em;">DEDICATED TEAM · ON-SITE DEPLOYMENT</div>
+
+      <!-- SOVEREIGN -->
+      <div class="suite-card reveal">
+        <div class="suite-tier">03</div>
+        <div class="suite-name" style="color:var(--amber);">Sovereign Suite</div>
+        <p class="suite-desc">For defence estates and CNI operators requiring full EW capabilities, on-site deployment and dedicated programme support.</p>
+        <div class="suite-products">
+          <span class="suite-pill suite-pill-amber">All Six Platforms</span>
+          <span class="suite-pill suite-pill-amber">Full EW Capabilities</span>
+          <span class="suite-pill suite-pill-amber">Custom Integrations</span>
+        </div>
+        <div class="suite-divider"></div>
+        <ul class="suite-features">
+          <li>Full enterprise tier across every platform</li>
+          <li>Unlimited scaling and custom integrations</li>
+          <li>Dedicated defence team, on-site deployment</li>
+          <li>99.95% SLA with dedicated account management</li>
+        </ul>
+        <div class="suite-support">Dedicated Team · On-Site Deployment</div>
       </div>
+
     </div>
-    <p style="font-size:12px; color:var(--text-dim); margin-top:16px;">All prices exclusive of VAT. Annual commitment required. Contact us for a tailored quote. Government and defence framework pricing available on request.</p>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-top:24px;">
+      <p style="font-size:12px; color:var(--text-dim);">All prices exclusive of VAT. Annual commitment required. Government and defence framework pricing available on request.</p>
+      <a href="#contact" class="btn-primary" style="font-size:12px; padding:10px 24px;">Request a Suite Briefing</a>
+    </div>
   </div>
 </section>
 
