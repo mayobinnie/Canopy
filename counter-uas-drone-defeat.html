@@ -128,22 +128,22 @@
 
 <style>
 :root {
-  --graphite: #0e0f11;
-  --graphite-2: #141518;
-  --graphite-3: #1c1e22;
-  --graphite-4: #252830;
-  --graphite-5: #2e3038;
-  --cyan: #00d4e8;
-  --cyan-dim: #00a8b8;
-  --cyan-faint: rgba(0,212,232,0.08);
-  --amber: #f5a623;
-  --amber-dim: #c4851c;
+  --graphite: #111214;
+  --graphite-2: #161819;
+  --graphite-3: #1a1c20;
+  --graphite-4: #222428;
+  --graphite-5: #2a2c32;
+  --cyan: #f0f4f8;
+  --cyan-dim: #cbd5e1;
+  --cyan-faint: rgba(240,244,248,0.07);
+  --amber: #f59e0b;
+  --amber-dim: #d97706;
   --emerald: #22c55e;
-  --text: #e8eaed;
-  --text-muted: #8b9099;
-  --text-dim: #5a6070;
+  --text: #eceef1;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
   --border: rgba(255,255,255,0.07);
-  --border-cyan: rgba(0,212,232,0.2);
+  --border-cyan: rgba(240,244,248,0.18);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -215,15 +215,15 @@ nav {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--graphite);
-  background: var(--cyan);
+  color: #111214;
+  background: var(--amber);
   border: none;
   padding: 8px 20px;
   cursor: pointer;
   text-decoration: none;
   transition: background 0.2s;
 }
-.nav-cta:hover { background: var(--cyan-dim); }
+.nav-cta:hover { background: var(--amber-dim); }
 
 /* BREADCRUMB */
 .breadcrumb {
@@ -258,8 +258,8 @@ nav {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0,212,232,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,212,232,0.04) 1px, transparent 1px);
+    linear-gradient(rgba(240,244,248,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240,244,248,0.03) 1px, transparent 1px);
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse 80% 60% at 30% 50%, black 20%, transparent 100%);
 }
@@ -267,7 +267,7 @@ nav {
   position: absolute;
   top: 0; right: 0;
   width: 700px; height: 500px;
-  background: radial-gradient(circle at 70% 30%, rgba(0,212,232,0.05) 0%, transparent 65%);
+  background: radial-gradient(circle at 70% 30%, rgba(240,244,248,0.03) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -370,8 +370,8 @@ h1 .cyan { color: var(--cyan); }
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--graphite);
-  background: var(--cyan);
+  color: #111214;
+  background: var(--amber);
   border: none;
   padding: 14px 32px;
   cursor: pointer;
@@ -379,7 +379,7 @@ h1 .cyan { color: var(--cyan); }
   display: inline-block;
   transition: background 0.2s, transform 0.2s;
 }
-.btn-primary:hover { background: var(--cyan-dim); transform: translateY(-1px); }
+.btn-primary:hover { background: var(--amber-dim); transform: translateY(-1px); }
 
 .btn-secondary {
   font-family: 'Barlow Condensed', sans-serif;
