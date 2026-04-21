@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canopy Products</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: #0A0C0A;
+      color: #E8EAE8;
+      font-family: 'Chakra Petch', sans-serif;
+      min-height: 100vh;
+    }
+
+    #ops-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .gradient-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse 55% 45% at 0% 100%, rgba(170,25,8,0.22) 0%, transparent 65%),
+        radial-gradient(ellipse 35% 25% at 100% 0%, rgba(140,18,5,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(10,12,10,0.5) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .cp-content {
+      position: relative;
+      z-index: 2;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    /* Eyebrow */
+    .cp-eyebrow {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .cp-eyebrow::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Headings */
+    .cp-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 56px;
+      font-weight: 700;
+      line-height: 0.95;
+      color: #FFFFFF;
+      margin-bottom: 18px;
+      letter-spacing: 0.01em;
+    }
+
+    /* Body */
+    .cp-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #9A9E9A;
+      max-width: 420px;
+    }
+
+    /* Stats */
+    .cp-stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid #1A1D1A;
+    }
+    .cp-stat-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 5px;
+      letter-spacing: 0.02em;
+    }
+    .cp-stat-lbl {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #4A4E4A;
+    }
+
+    /* Features */
+    .cp-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .cp-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #B8BCB8;
+    }
+    .cp-dash {
+      width: 14px;
+      height: 2px;
+      flex-shrink: 0;
+      margin-top: 9px;
+    }
+
+    /* CTA */
+    .cp-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 28px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding-bottom: 3px;
+      border-bottom: 1px solid currentColor;
+    }
+    .cp-cta:hover { opacity: 0.75; }
+
+    /* Product rows */
+    .cp-product {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid #1A1D1A;
+    }
+    .cp-product-left {
+      padding: 60px 52px 60px 0;
+      border-right: 1px solid #1A1D1A;
+    }
+    .cp-product-right {
+      padding: 60px 0 60px 52px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Accent colours */
+    .c2      { color: #D94020; }
+    .sight   { color: #F0A020; }
+    .beacon  { color: #28C87A; }
+
+    /* Suite */
+    .cp-suite-header {
+      padding: 72px 0 44px;
+      border-top: 1px solid #1A1D1A;
+    }
+    .cp-suite-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #3A3E3A;
+      margin-bottom: 16px;
+    }
+    .cp-suite-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 62px;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 0.95;
+      margin-bottom: 22px;
+      letter-spacing: 0.01em;
+    }
+    .cp-suite-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #9A9E9A;
+      max-width: 560px;
+    }
+
+    /* Tiers */
+    .cp-tiers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid #1A1D1A;
+      border-left: 1px solid #1A1D1A;
+      margin-top: 36px;
+    }
+    .cp-tier {
+      border-right: 1px solid #1A1D1A;
+      border-bottom: 1px solid #1A1D1A;
+      padding: 36px;
+    }
+    .cp-tier-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+    .cp-tier-items {
+      font-size: 12px;
+      line-height: 1.8;
+      color: #6A6E6A;
+    }
+    .cp-tier-items span {
+      color: #B8BCB8;
+      font-weight: 500;
+    }
+    .cp-tier-support {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #3A3E3A;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #1A1D1A;
+    }
+
+    .cp-note {
+      font-size: 11px;
+      color: #3A3E3A;
+      margin-top: 20px;
+      border-top: 1px solid #1A1D1A;
+      padding-top: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 720px) {
+      .cp-content { padding: 0 20px 60px; }
+      .cp-product { grid-template-columns: 1fr; }
+      .cp-product-left { border-right: none; border-bottom: 1px solid #1A1D1A; padding: 40px 0; }
+      .cp-product-right { padding: 36px 0; }
+      .cp-title { font-size: 40px; }
+      .cp-tiers { grid-template-columns: 1fr; }
+      .cp-suite-title { font-size: 44px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="ops-canvas"></canvas>
+<div class="gradient-overlay"></div>
+
+<div class="cp-content">
+
+  <!-- C2 -->
+  <div class="cp-product">
+    <div class="cp-product-left">
+      <div class="cp-eyebrow c2">Flagship · Command Layer</div>
+      <h2 class="cp-title">Canopy C2</h2>
+      <p class="cp-desc">The central nervous system connecting every Canopy product. Real-time command and control for fire, rescue and CNI operations, from drone fleet oversight to court-admissible evidence, in a single secure interface.</p>
+      <div class="cp-stats">
+        <div><div class="cp-stat-val c2">SHA-256</div><div class="cp-stat-lbl">Chain of Custody</div></div>
+        <div><div class="cp-stat-val c2">AWS</div><div class="cp-stat-lbl">GovCloud UK</div></div>
+        <div><div class="cp-stat-val c2">30+</div><div class="cp-stat-lbl">Sensor Integrations</div></div>
+      </div>
+      <a href="#" class="cp-cta c2">Request a C2 briefing →</a>
+    </div>
+    <div class="cp-product-right">
+      <ul class="cp-features">
+        <li><span class="cp-dash" style="background:#D94020;"></span>Incident lifecycle management with multi-agency attendance logging</li>
+        <li><span class="cp-dash" style="background:#D94020;"></span>Mission planning: survey, patrol, response, inspection</li>
+        <li><span class="cp-dash" style="background:#D94020;"></span>Mapbox and Cesium 3D geospatial intelligence with hazard overlays</li>
+        <li><span class="cp-dash" style="background:#D94020;"></span>Drone fleet management with live telemetry and video feed</li>
+        <li><span class="cp-dash" style="background:#D94020;"></span>Immutable audit log. Role-based access. AI hazard summarisation</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Sight -->
+  <div class="cp-product">
+    <div class="cp-product-left">
+      <div class="cp-eyebrow sight">AI Monitoring</div>
+      <h2 class="cp-title">Canopy Sight</h2>
+      <p class="cp-desc">AI-powered safety monitoring for rail, critical sites and conservation areas. Real-time detection, behavioural analytics and 24/7 automated alerting.</p>
+      <div class="cp-stats">
+        <div><div class="cp-stat-val sight">30ms</div><div class="cp-stat-lbl">Detection Latency</div></div>
+        <div><div class="cp-stat-val sight">500+</div><div class="cp-stat-lbl">Mesh Nodes</div></div>
+        <div><div class="cp-stat-val sight">7ms</div><div class="cp-stat-lbl">Mesh Latency</div></div>
+      </div>
+      <a href="#" class="cp-cta sight">Request a briefing →</a>
+    </div>
+    <div class="cp-product-right">
+      <ul class="cp-features">
+        <li><span class="cp-dash" style="background:#F0A020;"></span>YOLO detection: person, vehicle, animal, equipment, debris</li>
+        <li><span class="cp-dash" style="background:#F0A020;"></span>Multi-factor risk scoring: speed, zone, dwell time, time-of-day</li>
+        <li><span class="cp-dash" style="background:#F0A020;"></span>MeshConnect AES-256 mesh networking: 500+ nodes</li>
+        <li><span class="cp-dash" style="background:#F0A020;"></span>Wildlife module with species tracking and evidence packages</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Beacon -->
+  <div class="cp-product">
+    <div class="cp-product-left">
+      <div class="cp-eyebrow beacon">Operational Management</div>
+      <h2 class="cp-title">Canopy Beacon</h2>
+      <p class="cp-desc">Unified workforce and operational management for complex, regulated environments. Command, resource scheduling, training, fleet and compliance built into one platform, designed to replace costly legacy infrastructure.</p>
+      <div class="cp-stats">
+        <div><div class="cp-stat-val beacon">30+</div><div class="cp-stat-lbl">Systems Replaced</div></div>
+        <div><div class="cp-stat-val beacon">60%</div><div class="cp-stat-lbl">Year 1 Saving</div></div>
+        <div><div class="cp-stat-val beacon">22+</div><div class="cp-stat-lbl">Modules</div></div>
+      </div>
+      <a href="#" class="cp-cta beacon">Request a briefing →</a>
+    </div>
+    <div class="cp-product-right">
+      <ul class="cp-features">
+        <li><span class="cp-dash" style="background:#28C87A;"></span>Regulatory compliance frameworks built into daily workflows</li>
+        <li><span class="cp-dash" style="background:#28C87A;"></span>Native iOS and Android with offline capability</li>
+        <li><span class="cp-dash" style="background:#28C87A;"></span>Scales to 800+ personnel, 150+ assets, across all shift patterns</li>
+        <li><span class="cp-dash" style="background:#28C87A;"></span>Replaces £83K to £172K in annual legacy system costs</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Defence Suite -->
+  <div class="cp-suite-header">
+    <div class="cp-suite-tag">Package</div>
+    <h2 class="cp-suite-title">The Canopy<br>Defence Suite.</h2>
+    <p class="cp-suite-desc">All five software platforms integrated through Canopy C2. Unified authentication, cross-product alerting, shared geospatial layer and AI intelligence across every operational domain. Suite packages offer significant savings versus individual product pricing.</p>
+  </div>
+
+  <div class="cp-tiers">
+    <div class="cp-tier">
+      <div class="cp-tier-name c2">Operational Suite</div>
+      <div class="cp-tier-items"><span>C2 Operational</span> · <span>Sight Monitor</span> · <span>Observe Survey</span> · <span>Beacon Professional</span> · Suite integration layer · Unified dashboard · Cross-product alerting · Shared authentication</div>
+      <div class="cp-tier-support">Standard Support · Quarterly Reviews</div>
+    </div>
+    <div class="cp-tier">
+      <div class="cp-tier-name sight">Command Suite</div>
+      <div class="cp-tier-items"><span>C2 Command</span> · <span>Sight Protect</span> · <span>Observe Operations</span> · <span>Defeat Detection</span> · <span>Beacon Enterprise</span> · AI intelligence across all products · Advanced drone operations · Counter-UAS detection</div>
+      <div class="cp-tier-support">Priority Support 24/7 · SLA Guaranteed</div>
+    </div>
+    <div class="cp-tier">
+      <div class="cp-tier-name" style="color:#E8EAE8;">Sovereign Suite</div>
+      <div class="cp-tier-items">Full enterprise tier across all products · <span>Full EW capabilities</span> · <span>Unlimited scaling</span> · <span>Custom integrations</span> · Dedicated defence team · On-site deployment · 99.95% SLA</div>
+      <div class="cp-tier-support">Dedicated Team · On-site Deployment</div>
+    </div>
+  </div>
+
+  <p class="cp-note">All prices exclusive of VAT. Annual commitment required. Contact us for a tailored quote. Government and defence framework pricing available on request.</p>
+
+</div>
+
+<script>
+  const canvas = document.getElementById('ops-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const GRID = 56;
+  const nodes = [];
+  const connections = [];
+  const scanLines = [];
+  let radarAngle = 0;
+  let radarTrail = [];
+
+  for (let i = 0; i < 32; i++) {
+    nodes.push({
+      x: Math.random(),
+      y: Math.random(),
+      pulse: Math.random() * Math.PI * 2,
+      pulseSpeed: 0.006 + Math.random() * 0.01,
+      r: 1.5 + Math.random() * 2,
+      color: ['rgba(217,64,32,', 'rgba(240,160,32,', 'rgba(40,200,122,'][Math.floor(Math.random() * 3)],
+      active: Math.random() > 0.35
+    });
+  }
+
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      if (Math.sqrt(dx*dx + dy*dy) < 0.2 && Math.random() > 0.5) {
+        connections.push({ a: i, b: j });
+      }
+    }
+  }
+
+  for (let i = 0; i < 4; i++) {
+    scanLines.push({
+      y: Math.random(),
+      speed: 0.00025 + Math.random() * 0.00035,
+      opacity: 0.025 + Math.random() * 0.03
+    });
+  }
+
+  function draw(ts) {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // dot grid
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    for (let x = GRID; x < W; x += GRID) {
+      for (let y = GRID; y < H; y += GRID) {
+        ctx.beginPath();
+        ctx.arc(x, y, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // scan lines
+    scanLines.forEach(sl => {
+      sl.y += sl.speed;
+      if (sl.y > 1) sl.y = 0;
+      const gy = sl.y * H;
+      const grad = ctx.createLinearGradient(0, gy - 50, 0, gy + 50);
+      grad.addColorStop(0, 'transparent');
+      grad.addColorStop(0.5, `rgba(200,220,200,${sl.opacity})`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, gy - 50, W, 100);
+    });
+
+    // connections
+    connections.forEach(c => {
+      const a = nodes[c.a], b = nodes[c.b];
+      if (!a.active && !b.active) return;
+      ctx.beginPath();
+      ctx.moveTo(a.x * W, a.y * H);
+      ctx.lineTo(b.x * W, b.y * H);
+      ctx.strokeStyle = 'rgba(255,255,255,0.035)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    });
+
+    // nodes
+    nodes.forEach(n => {
+      n.pulse += n.pulseSpeed;
+      const alpha = n.active ? 0.12 + Math.sin(n.pulse) * 0.08 : 0.03;
+      const nx = n.x * W, ny = n.y * H;
+      if (n.active) {
+        ctx.beginPath();
+        ctx.arc(nx, ny, n.r * (2.5 + Math.sin(n.pulse) * 1.5), 0, Math.PI * 2);
+        ctx.fillStyle = n.color + (alpha * 0.25) + ')';
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.arc(nx, ny, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = n.color + alpha + ')';
+      ctx.fill();
+    });
+
+    // radar in top-right
+    const rx = W * 0.85, ry = H * 0.15, rr = Math.min(W, H) * 0.12;
+    radarAngle += 0.007;
+
+    ctx.beginPath();
+    ctx.arc(rx, ry, rr, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(217,64,32,0.07)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    [rr * 0.66, rr * 0.33].forEach(r => {
+      ctx.beginPath();
+      ctx.arc(rx, ry, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(217,64,32,0.04)';
+      ctx.stroke();
+    });
+
+    ctx.strokeStyle = 'rgba(217,64,32,0.04)';
+    ctx.beginPath(); ctx.moveTo(rx - rr, ry); ctx.lineTo(rx + rr, ry); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx, ry - rr); ctx.lineTo(rx, ry + rr); ctx.stroke();
+
+    radarTrail.push(radarAngle);
+    if (radarTrail.length > 70) radarTrail.shift();
+
+    for (let i = 0; i < radarTrail.length; i++) {
+      const a = radarTrail[i];
+      const fade = i / radarTrail.length;
+      ctx.beginPath();
+      ctx.moveTo(rx, ry);
+      ctx.arc(rx, ry, rr, a, a + 0.05);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(217,64,32,${fade * 0.14})`;
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.lineTo(rx + Math.cos(radarAngle) * rr, ry + Math.sin(radarAngle) * rr);
+    ctx.strokeStyle = 'rgba(217,64,32,0.55)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    nodes.slice(0, 6).forEach((n, i) => {
+      const bx = rx + Math.cos(i * 1.04 + ts * 0.0001) * rr * 0.65;
+      const by = ry + Math.sin(i * 1.04 + ts * 0.00015) * rr * 0.65;
+      ctx.beginPath();
+      ctx.arc(bx, by, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(217,64,32,0.55)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  requestAnimationFrame(draw);
+</script>
+
+</body>
+</html>
