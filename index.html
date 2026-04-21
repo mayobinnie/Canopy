@@ -2562,6 +2562,174 @@
   });
 
   // ── UK MAP CANVAS ──
+  (function() {
+    const canvas = document.getElementById('uk-map-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, animFrame;
+
+    // Real Great Britain coastline [lon, lat] — clockwise from Land's End
+    const gbCoords = [
+      [-5.71,50.07],[-5.20,49.96],[-4.55,50.32],[-3.64,50.22],[-2.46,50.51],
+      [-1.18,50.61],[-0.79,50.74],[0.25,50.74],[1.37,51.14],[1.44,51.38],
+      [1.27,51.89],[1.75,52.48],[1.30,52.93],[0.35,53.05],[0.11,53.57],
+      [-0.08,54.12],[-0.62,54.49],[-1.14,54.64],[-1.43,55.01],[-1.99,55.77],
+      [-2.14,55.91],[-2.52,56.02],[-2.59,56.17],[-2.47,56.44],[-2.46,56.71],
+      [-2.21,56.96],[-2.08,57.14],[-1.77,57.50],[-2.00,57.70],[-3.10,57.87],
+      [-3.37,58.67],[-4.99,58.63],[-5.50,58.30],[-5.80,57.80],[-6.22,56.72],
+      [-5.76,55.31],[-5.11,55.25],[-5.03,54.90],[-4.86,54.63],[-4.40,54.68],
+      [-3.38,54.88],[-3.64,54.51],[-3.23,54.11],[-2.93,54.03],[-3.05,53.82],
+      [-3.12,53.57],[-3.84,53.33],[-4.78,52.75],[-4.50,52.40],[-5.32,51.90],
+      [-5.07,51.67],[-3.95,51.57],[-3.17,51.46],[-2.71,51.50],[-3.47,51.21],
+      [-4.53,51.01],[-4.55,50.83],[-5.03,50.55],[-5.71,50.07]
+    ];
+
+    // Bounding box for scaling
+    const lons = gbCoords.map(c=>c[0]);
+    const lats = gbCoords.map(c=>c[1]);
+    const minLon=Math.min(...lons), maxLon=Math.max(...lons);
+    const minLat=Math.min(...lats), maxLat=Math.max(...lats);
+
+    // Key locations [lon, lat, label, isPrimary]
+    const locations = [
+      [-0.35, 53.74, 'Humber HQ', true],
+      [-0.08, 51.51, 'London', false],
+      [-3.19, 55.95, 'Edinburgh', false],
+      [-2.24, 53.48, 'Manchester', false],
+      [-2.59, 51.45, 'Bristol', false],
+      [-1.08, 53.96, 'Hull', false],
+      [-2.98, 53.41, 'Liverpool', false],
+      [-1.61, 54.97, 'Newcastle', false],
+    ];
+
+    let scanY = 0;
+    let linePhase = 0;
+
+    function project(lon, lat) {
+      const pad = 0.08;
+      const useW = W * (1 - pad * 2);
+      const useH = H * (1 - pad * 2);
+      // Flip lat (north = up)
+      const x = W * pad + ((lon - minLon) / (maxLon - minLon)) * useW;
+      const y = H * pad + ((maxLat - lat) / (maxLat - minLat)) * useH;
+      return [x, y];
+    }
+
+    function drawGB() {
+      ctx.beginPath();
+      gbCoords.forEach(([lon, lat], i) => {
+        const [sx, sy] = project(lon, lat);
+        i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+      });
+      ctx.closePath();
+      // Fill
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, 'rgba(244,164,164,0.06)');
+      grad.addColorStop(1, 'rgba(244,164,164,0.02)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // Outline
+      ctx.strokeStyle = 'rgba(244,164,164,0.55)';
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Grid
+      ctx.strokeStyle = 'rgba(244,164,164,0.04)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 44) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+      for (let y = 0; y < H; y += 44) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+      // Scan line
+      scanY = (scanY + 0.5) % H;
+      ctx.beginPath(); ctx.moveTo(0, scanY); ctx.lineTo(W, scanY);
+      ctx.strokeStyle = 'rgba(244,164,164,0.07)'; ctx.lineWidth = 1; ctx.stroke();
+
+      // UK shape
+      drawGB();
+
+      // Humber HQ position
+      const [hqX, hqY] = project(locations[0][0], locations[0][1]);
+
+      // Connection lines from HQ to other cities (animated)
+      linePhase = (linePhase + 0.003) % 1;
+      locations.slice(1).forEach(([lon, lat], i) => {
+        const [lx, ly] = project(lon, lat);
+        const p = (linePhase + i * 0.14) % 1;
+        const ex = hqX + (lx - hqX) * p;
+        const ey = hqY + (ly - hqY) * p;
+        ctx.beginPath(); ctx.moveTo(hqX, hqY); ctx.lineTo(ex, ey);
+        ctx.strokeStyle = 'rgba(244,164,164,0.14)'; ctx.lineWidth = 0.8; ctx.stroke();
+      });
+
+      // Location dots and pulses
+      const t = Date.now() / 1000;
+      locations.forEach(([lon, lat, label, primary], i) => {
+        const [sx, sy] = project(lon, lat);
+        const pulse = (t * 0.7 + i * 0.45) % 1;
+        const maxR = primary ? 32 : 22;
+
+        // Two expanding rings
+        [pulse, (pulse + 0.4) % 1].forEach(p => {
+          ctx.beginPath(); ctx.arc(sx, sy, p * maxR, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(244,164,164,${(1-p)*(primary?0.45:0.2)})`;
+          ctx.lineWidth = 1; ctx.stroke();
+        });
+
+        // Dot
+        ctx.beginPath(); ctx.arc(sx, sy, primary ? 5 : 3, 0, Math.PI * 2);
+        ctx.fillStyle = primary ? '#f4a4a4' : 'rgba(244,164,164,0.65)';
+        ctx.fill();
+
+        // Label
+        ctx.font = primary ? 'bold 11px monospace' : '9px monospace';
+        ctx.fillStyle = primary ? 'rgba(244,164,164,1)' : 'rgba(244,164,164,0.55)';
+        const [lx, ly] = [sx + 9, sy - 5];
+        ctx.fillText(label, lx, ly);
+      });
+
+      // Crosshair on HQ
+      ctx.strokeStyle = 'rgba(244,164,164,0.5)'; ctx.lineWidth = 1;
+      [[-14,-5],[-5,0],[5,0],[5,0]].forEach(() => {}); // placeholder
+      ctx.beginPath(); ctx.moveTo(hqX-14,hqY); ctx.lineTo(hqX-6,hqY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hqX+6,hqY); ctx.lineTo(hqX+14,hqY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hqX,hqY-14); ctx.lineTo(hqX,hqY-6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hqX,hqY+6); ctx.lineTo(hqX,hqY+14); ctx.stroke();
+
+      // Corner HUD
+      ctx.font = '9px monospace';
+      ctx.fillStyle = 'rgba(244,164,164,0.3)';
+      ctx.fillText('53°44'N  0°21'W', 14, H - 14);
+      ctx.fillText('UK SOVEREIGN', W - 100, H - 14);
+
+      animFrame = requestAnimationFrame(draw);
+    }
+
+    function init() {
+      W = canvas.offsetWidth; H = canvas.offsetHeight;
+      canvas.width = W; canvas.height = H;
+      if (animFrame) cancelAnimationFrame(animFrame);
+      draw();
+    }
+
+    window.addEventListener('resize', init);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(animFrame); else draw();
+    });
+
+    const sovereign = document.getElementById('sovereign');
+    if (sovereign) {
+      const mo = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) { init(); mo.disconnect(); }
+      }, { threshold: 0.1 });
+      mo.observe(sovereign);
+    } else { init(); }
+  })();
+
 
   // ── HERO CANVAS: ALL FOUR ANIMATIONS COMBINED ──
   (function() {
