@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/products",
-      "destination": "/canopy-products.html"
-    },
-    {
       "source": "/counter-uas-drone-defeat",
       "destination": "/counter-uas-drone-defeat.html"
     },
