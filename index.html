@@ -1947,6 +1947,11 @@
     <p class="section-intro reveal">Your procurement team will evaluate us against doing nothing, using a detection-only system, or buying a foreign platform. Here is the honest comparison.</p>
 
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:2px;background:var(--border);" class="reveal why-grid">
+      <div style="background:var(--graphite-4);padding:28px 24px;border-top:2px solid var(--red);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(244,164,164,0.2);">Canopy</div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:10px;">Detect, Defeat, Evidence</div>
+        <p style="font-size:12px;font-weight:300;color:var(--text-muted);line-height:1.6;">UK sovereign. No foreign dependency. CAP 2563 compliant. Mandatory human authorisation. Court-admissible evidence at every engagement. Operator located and handed to police.</p>
+      </div>
       <div style="background:var(--graphite-3);padding:28px 24px;">
         <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">The alternative</div>
         <div style="font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">Do Nothing</div>
@@ -1961,11 +1966,6 @@
         <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">The alternative</div>
         <div style="font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">Foreign Platform</div>
         <p style="font-size:12px;font-weight:300;color:var(--text-dim);line-height:1.6;">NSI Act exposure. Capability withdrawal risk. ITAR entanglement. PRC component dependency. No court-admissible evidence framework built for UK CPS prosecution standards.</p>
-      </div>
-      <div style="background:var(--graphite-4);padding:28px 24px;border-top:2px solid var(--red);">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(244,164,164,0.2);">Canopy</div>
-        <div style="font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:10px;">Detect, Defeat, Evidence</div>
-        <p style="font-size:12px;font-weight:300;color:var(--text-muted);line-height:1.6;">UK sovereign. No foreign dependency. CAP 2563 compliant. Mandatory human authorisation. Court-admissible evidence at every engagement. Operator located and handed to police.</p>
       </div>
     </div>
 
@@ -2497,6 +2497,8 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script>
   // Scroll reveal
   const reveals = document.querySelectorAll('.reveal');
@@ -2566,38 +2568,9 @@
     const canvas = document.getElementById('uk-map-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let W, H, animFrame;
+    let W, H, animFrame, ukFeature, proj;
+    let scanY = 0, linePhase = 0;
 
-    // Accurate GB coastline [lon, lat] clockwise from Lands End
-    const gb = [
-      [-5.71,50.07],[-5.48,50.21],[-5.09,50.42],[-5.03,50.55],[-4.55,50.83],
-      [-4.53,51.01],[-4.12,51.21],[-3.47,51.21],[-2.97,51.35],[-2.71,51.50],
-      [-3.17,51.46],[-3.95,51.57],[-4.32,51.57],[-5.07,51.67],[-5.05,52.02],
-      [-5.32,51.90],[-4.67,52.08],[-4.72,52.81],[-4.78,52.75],[-4.42,52.89],
-      [-3.84,53.33],[-3.19,53.39],[-3.12,53.57],[-3.05,53.82],[-2.86,54.08],
-      [-3.23,54.11],[-3.64,54.51],[-4.86,54.63],[-5.03,54.90],[-4.63,55.46],
-      [-4.85,55.24],[-5.76,55.31],[-5.44,56.03],[-6.22,56.72],[-5.68,57.72],
-      [-5.72,57.27],[-5.16,57.90],[-5.05,58.46],[-4.99,58.63],[-4.42,58.48],
-      [-3.37,58.67],[-3.86,58.01],[-3.80,57.87],[-3.87,57.58],[-2.00,57.70],
-      [-1.77,57.50],[-2.08,57.14],[-2.21,56.96],[-2.46,56.71],[-2.59,56.56],
-      [-2.47,56.44],[-2.79,56.34],[-2.59,56.17],[-2.52,56.00],[-2.14,55.91],
-      [-1.99,55.77],[-1.61,55.39],[-1.57,55.34],[-1.51,55.13],[-1.43,55.01],
-      [-1.38,54.91],[-1.21,54.69],[-1.14,54.64],[-0.97,54.58],[-0.62,54.49],
-      [-0.40,54.28],[-0.08,54.12],[0.11,53.57],[0.34,53.15],[0.35,53.05],
-      [0.49,52.94],[1.30,52.93],[1.75,52.48],[1.47,52.03],[1.27,51.89],
-      [0.83,51.54],[0.92,51.36],[1.44,51.38],[1.37,51.14],[0.98,50.91],
-      [0.25,50.74],[-0.14,50.82],[-0.38,50.82],[-0.79,50.74],[-1.55,50.71],
-      [-1.83,50.72],[-2.46,50.51],[-3.38,50.61],[-3.52,50.46],[-3.64,50.22],
-      [-4.94,50.12],[-5.20,49.96],[-5.71,50.07]
-    ];
-
-    const lons = gb.map(c=>c[0]), lats = gb.map(c=>c[1]);
-    const minLon=Math.min(...lons), maxLon=Math.max(...lons);
-    const minLat=Math.min(...lats), maxLat=Math.max(...lats);
-    const midLat = (minLat+maxLat)/2 * Math.PI/180;
-    const cosLat = Math.cos(midLat);
-
-    // Locations [lon, lat, label, primary]
     const locs = [
       [-0.44,53.72,'Humber HQ',true],
       [-0.12,51.50,'London',false],
@@ -2607,80 +2580,57 @@
       [-0.34,53.74,'Hull',false],
       [-2.98,53.41,'Liverpool',false],
       [-1.61,54.97,'Newcastle',false],
-      [-4.25,55.86,'Glasgow',false],
+      [-4.25,55.86,'Glasgow',false]
     ];
 
-    let scanY=0, linePhase=0;
-
-    function project(lon, lat) {
-      // Mercator-corrected projection
-      const eLon = lon * cosLat;
-      const eMin = minLon * cosLat;
-      const eMax = maxLon * cosLat;
-      const lonR = eMax - eMin;
-      const latR = maxLat - minLat;
-      const aspect = lonR / latR; // ~0.53 for UK
-
-      const pad = 0.07;
-      const availW = W*(1-2*pad), availH = H*(1-2*pad);
-      let useW, useH;
-      if (availW/availH > aspect) { useH=availH; useW=availH*aspect; }
-      else { useW=availW; useH=availW/aspect; }
-
-      const startX = (W-useW)/2;
-      const startY = (H-useH)/2;
-      return [
-        startX + ((eLon-eMin)/lonR)*useW,
-        startY + ((maxLat-lat)/latR)*useH
-      ];
+    function toScreen(lon, lat) {
+      return proj ? proj([lon, lat]) : [W/2, H/2];
     }
 
     function draw() {
-      ctx.clearRect(0,0,W,H);
+      ctx.clearRect(0, 0, W, H);
 
       // Grid
-      ctx.strokeStyle='rgba(244,164,164,0.04)'; ctx.lineWidth=1;
-      for(let x=0;x<W;x+=44){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-      for(let y=0;y<H;y+=44){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+      ctx.strokeStyle = 'rgba(244,164,164,0.04)'; ctx.lineWidth = 1;
+      for (let x=0;x<W;x+=44){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+      for (let y=0;y<H;y+=44){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
       // Scan line
-      scanY=(scanY+0.5)%H;
+      scanY = (scanY + 0.5) % H;
       ctx.beginPath();ctx.moveTo(0,scanY);ctx.lineTo(W,scanY);
       ctx.strokeStyle='rgba(244,164,164,0.07)';ctx.lineWidth=1;ctx.stroke();
 
-      // GB outline
-      ctx.beginPath();
-      gb.forEach(([lon,lat],i)=>{
-        const [sx,sy]=project(lon,lat);
-        i===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);
-      });
-      ctx.closePath();
-      const grad=ctx.createLinearGradient(0,0,0,H);
-      grad.addColorStop(0,'rgba(244,164,164,0.07)');
-      grad.addColorStop(1,'rgba(244,164,164,0.02)');
-      ctx.fillStyle=grad; ctx.fill();
-      ctx.strokeStyle='rgba(244,164,164,0.55)';
-      ctx.lineWidth=1.5; ctx.lineJoin='round'; ctx.stroke();
+      // UK shape via D3
+      if (ukFeature && proj && typeof d3 !== 'undefined') {
+        const path = d3.geoPath().projection(proj).context(ctx);
+        ctx.beginPath();
+        path(ukFeature);
+        const grad = ctx.createLinearGradient(0,0,0,H);
+        grad.addColorStop(0,'rgba(244,164,164,0.08)');
+        grad.addColorStop(1,'rgba(244,164,164,0.02)');
+        ctx.fillStyle = grad; ctx.fill();
+        ctx.strokeStyle = 'rgba(244,164,164,0.6)';
+        ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.stroke();
+      }
 
-      // HQ
-      const [hqX,hqY]=project(locs[0][0],locs[0][1]);
-
-      // Connection lines
-      linePhase=(linePhase+0.003)%1;
-      locs.slice(1).forEach(([lon,lat,,],i)=>{
-        const [lx,ly]=project(lon,lat);
-        const p=(linePhase+i*0.14)%1;
+      // Connections from HQ
+      const [hqX,hqY] = toScreen(locs[0][0], locs[0][1]);
+      linePhase = (linePhase + 0.003) % 1;
+      locs.slice(1).forEach(([lon,lat,,],i) => {
+        const [lx,ly] = toScreen(lon,lat);
+        const p = (linePhase + i*0.14) % 1;
         ctx.beginPath();ctx.moveTo(hqX,hqY);ctx.lineTo(hqX+(lx-hqX)*p,hqY+(ly-hqY)*p);
         ctx.strokeStyle='rgba(244,164,164,0.15)';ctx.lineWidth=0.8;ctx.stroke();
       });
 
-      // Dots and pulses
-      const t=Date.now()/1000;
-      locs.forEach(([lon,lat,label,primary],i)=>{
-        const [sx,sy]=project(lon,lat);
-        const pulse=(t*0.7+i*0.45)%1;
-        const maxR=primary?32:20;
-        [pulse,(pulse+0.4)%1].forEach(p=>{
+      // Pulses and dots
+      const t = Date.now() / 1000;
+      locs.forEach(([lon,lat,label,primary],i) => {
+        const [sx,sy] = toScreen(lon,lat);
+        if (!sx || !sy) return;
+        const pulse = (t*0.7 + i*0.45) % 1;
+        const maxR = primary ? 32 : 20;
+        [pulse,(pulse+0.4)%1].forEach(p => {
           ctx.beginPath();ctx.arc(sx,sy,p*maxR,0,Math.PI*2);
           ctx.strokeStyle=`rgba(244,164,164,${(1-p)*(primary?0.45:0.2)})`;
           ctx.lineWidth=1;ctx.stroke();
@@ -2699,221 +2649,227 @@
         ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
       });
 
-      // HUD labels
-      ctx.font='9px monospace';
-      ctx.fillStyle='rgba(244,164,164,0.3)';
+      ctx.font='9px monospace';ctx.fillStyle='rgba(244,164,164,0.3)';
       ctx.fillText('53N 0W  HUMBER',14,H-14);
       ctx.fillText('UK SOVEREIGN',W-100,H-14);
 
-      animFrame=requestAnimationFrame(draw);
+      animFrame = requestAnimationFrame(draw);
     }
 
-    function init(){
-      W=canvas.offsetWidth;H=canvas.offsetHeight;
-      canvas.width=W;canvas.height=H;
-      if(animFrame)cancelAnimationFrame(animFrame);
+    function init() {
+      W = canvas.offsetWidth; H = canvas.offsetHeight;
+      canvas.width = W; canvas.height = H;
+      if (ukFeature && typeof d3 !== 'undefined') {
+        proj = d3.geoMercator().fitExtent([[W*0.06,H*0.04],[W*0.94,H*0.96]], ukFeature);
+      }
+      if (animFrame) cancelAnimationFrame(animFrame);
       draw();
     }
 
-    window.addEventListener('resize',init);
-    document.addEventListener('visibilitychange',()=>{
-      if(document.hidden)cancelAnimationFrame(animFrame);else draw();
+    window.addEventListener('resize', init);
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden) cancelAnimationFrame(animFrame); else draw();
     });
 
-    const el=document.getElementById('sovereign');
-    if(el){
-      const mo=new IntersectionObserver(e=>{if(e[0].isIntersecting){init();mo.disconnect();}},{threshold:0.1});
-      mo.observe(el);
-    }else{init();}
+    // Fetch real UK topology
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json')
+      .then(r => r.json())
+      .then(world => {
+        if (typeof topojson === 'undefined') throw new Error('no topojson');
+        const countries = topojson.feature(world, world.objects.countries);
+        ukFeature = countries.features.find(f => f.id === '826');
+        if (!ukFeature) throw new Error('UK not found');
+        init();
+      })
+      .catch(() => { init(); });
   })();
 
 
   // ── HERO CANVAS: ALL FOUR ANIMATIONS COMBINED ──
   (function() {
-    const canvas = document.getElementById('uk-map-canvas');
+    const canvas = document.getElementById('hero-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let W, H, frame;
+    let W, H, animFrame;
 
-    // Simplified UK outline — normalised 0-1 coords [x, y]
-    // Approximation of Great Britain mainland
-    const ukPath = [
-      [0.52,0.02],[0.54,0.04],[0.58,0.05],[0.60,0.08],[0.58,0.10],
-      [0.62,0.12],[0.64,0.15],[0.66,0.18],[0.64,0.20],[0.68,0.22],
-      [0.70,0.26],[0.68,0.28],[0.72,0.30],[0.70,0.33],[0.66,0.35],
-      [0.70,0.38],[0.68,0.40],[0.72,0.42],[0.70,0.45],[0.66,0.46],
-      [0.68,0.50],[0.65,0.52],[0.70,0.55],[0.68,0.58],[0.64,0.58],
-      [0.62,0.60],[0.64,0.62],[0.60,0.63],[0.58,0.65],[0.60,0.67],
-      [0.56,0.68],[0.54,0.70],[0.56,0.72],[0.52,0.73],[0.50,0.75],
-      [0.48,0.74],[0.44,0.76],[0.42,0.78],[0.40,0.76],[0.38,0.78],
-      [0.36,0.76],[0.34,0.74],[0.36,0.72],[0.32,0.70],[0.30,0.68],
-      [0.32,0.66],[0.28,0.64],[0.30,0.62],[0.28,0.60],[0.32,0.58],
-      [0.30,0.55],[0.34,0.53],[0.32,0.50],[0.36,0.48],[0.34,0.45],
-      [0.38,0.44],[0.36,0.42],[0.40,0.40],[0.38,0.38],[0.42,0.36],
-      [0.40,0.33],[0.44,0.32],[0.42,0.30],[0.46,0.28],[0.44,0.26],
-      [0.48,0.24],[0.46,0.22],[0.50,0.20],[0.48,0.18],[0.50,0.15],
-      [0.48,0.12],[0.50,0.10],[0.48,0.08],[0.50,0.06],[0.52,0.04],[0.52,0.02]
-    ];
-
-    // Key UK locations [x, y normalised, label]
-    const locations = [
-      { x: 0.52, y: 0.42, label: 'Humber HQ', primary: true },
-      { x: 0.52, y: 0.58, label: 'London', primary: false },
-      { x: 0.44, y: 0.28, label: 'Edinburgh', primary: false },
-      { x: 0.40, y: 0.50, label: 'Manchester', primary: false },
-      { x: 0.36, y: 0.60, label: 'Bristol', primary: false },
-      { x: 0.56, y: 0.38, label: 'Hull', primary: false },
-      { x: 0.34, y: 0.46, label: 'Liverpool', primary: false },
-    ];
-
-    let pulses = locations.map((loc, i) => ({
-      ...loc,
-      phase: i * (Math.PI * 2 / locations.length),
-      r: 0,
-      alpha: 0,
-    }));
-
-    // Connection lines between locations
-    let lineProgress = 0;
-    let scanY = 0;
-
-    function resize() {
-      W = canvas.offsetWidth;
-      H = canvas.offsetHeight;
-      canvas.width = W;
-      canvas.height = H;
+    // Particles
+    let particles = [];
+    function initParticles() {
+      particles = Array.from({length:40}, () => ({
+        x: Math.random() * W * 0.6,
+        y: Math.random() * H,
+        vx: (Math.random()-0.5)*0.35,
+        vy: (Math.random()-0.5)*0.35
+      }));
     }
 
-    function toScreen(nx, ny) {
-      // Scale UK to fit nicely in canvas with padding
-      const padX = W * 0.12;
-      const padY = H * 0.06;
-      const useW = W - padX * 2;
-      const useH = H - padY * 2;
-      return [padX + nx * useW, padY + ny * useH];
+    // Radar
+    let radarAngle = 0;
+    const radarTargets = [
+      {rx:0.72,ry:-0.28,lit:-1,pulse:0},
+      {rx:-0.55,ry:0.35,lit:-1,pulse:0},
+      {rx:0.38,ry:0.58,lit:-1,pulse:0},
+      {rx:-0.68,ry:-0.42,lit:-1,pulse:0}
+    ];
+    const radarCX = () => W * 0.78;
+    const radarCY = () => H * 0.5;
+    const radarR  = () => Math.min(W * 0.22, H * 0.7);
+
+    // Drones
+    function genPath() {
+      return [{x:Math.random()*W*0.55,y:Math.random()*H},
+              {x:Math.random()*W*0.55,y:Math.random()*H},
+              {x:Math.random()*W*0.55,y:Math.random()*H}];
+    }
+    const drones = Array.from({length:3}, () => ({
+      progress: Math.random(), speed: 0.0018+Math.random()*0.001,
+      trail: [], path: genPath()
+    }));
+    function bezier(t,p){
+      const mt=1-t;
+      return {x:mt*mt*p[0].x+2*mt*t*p[1].x+t*t*p[2].x,
+              y:mt*mt*p[0].y+2*mt*t*p[1].y+t*t*p[2].y};
+    }
+
+    // Grid
+    let gridOffset = 0;
+
+    function resize() {
+      W = canvas.offsetWidth; H = canvas.offsetHeight;
+      canvas.width = W; canvas.height = H;
+      initParticles();
     }
 
     function draw() {
       ctx.clearRect(0, 0, W, H);
 
-      // Subtle grid
-      ctx.strokeStyle = 'rgba(244,164,164,0.04)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      // 1. ANIMATED GRID
+      const spacing = 48;
+      ctx.strokeStyle = 'rgba(244,164,164,0.04)'; ctx.lineWidth = 1;
+      for (let x=(gridOffset%spacing); x<W*0.65; x+=spacing) {
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+      }
+      for (let y=0; y<H; y+=spacing) {
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W*0.65,y); ctx.stroke();
+      }
+      const px = (gridOffset*0.4)%(W*0.65);
+      ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,H);
+      ctx.strokeStyle='rgba(244,164,164,0.10)'; ctx.stroke();
+      const py = (gridOffset*0.25)%H;
+      ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(W*0.65,py);
+      ctx.strokeStyle='rgba(244,164,164,0.07)'; ctx.stroke();
+      gridOffset += 0.4;
 
-      // Horizontal scan line
-      scanY = (scanY + 0.4) % H;
-      ctx.beginPath();
-      ctx.moveTo(0, scanY);
-      ctx.lineTo(W, scanY);
-      ctx.strokeStyle = 'rgba(244,164,164,0.08)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // UK outline — draw as filled shape then stroke
-      ctx.beginPath();
-      ukPath.forEach(([nx, ny], i) => {
-        const [sx, sy] = toScreen(nx, ny);
-        if (i === 0) ctx.moveTo(sx, sy);
-        else ctx.lineTo(sx, sy);
+      // 2. PARTICLE NETWORK
+      particles.forEach(p => {
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0||p.x>W*0.6) p.vx*=-1;
+        if(p.y<0||p.y>H) p.vy*=-1;
       });
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(244,164,164,0.04)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(244,164,164,0.35)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Connection lines radiating from HQ
-      const hq = pulses[0];
-      const [hqX, hqY] = toScreen(hq.x, hq.y);
-      lineProgress = (lineProgress + 0.004) % 1;
-      pulses.slice(1).forEach(loc => {
-        const [lx, ly] = toScreen(loc.x, loc.y);
-        const p = (lineProgress + loc.phase * 0.1) % 1;
-        const ex = hqX + (lx - hqX) * p;
-        const ey = hqY + (ly - hqY) * p;
-        ctx.beginPath();
-        ctx.moveTo(hqX, hqY);
-        ctx.lineTo(ex, ey);
-        ctx.strokeStyle = 'rgba(244,164,164,0.12)';
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
+      for(let i=0;i<particles.length;i++) {
+        for(let j=i+1;j<particles.length;j++) {
+          const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+          const dist=Math.sqrt(dx*dx+dy*dy);
+          if(dist<90) {
+            ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y);
+            ctx.lineTo(particles[j].x,particles[j].y);
+            ctx.strokeStyle=`rgba(244,164,164,${0.08*(1-dist/90)})`;
+            ctx.lineWidth=0.8; ctx.stroke();
+          }
+        }
+      }
+      particles.forEach(p => {
+        ctx.beginPath(); ctx.arc(p.x,p.y,1.5,0,Math.PI*2);
+        ctx.fillStyle='rgba(244,164,164,0.25)'; ctx.fill();
       });
 
-      // Location pulses
-      const t = Date.now() / 1000;
-      pulses.forEach((loc, i) => {
-        const [sx, sy] = toScreen(loc.x, loc.y);
-        const pulse = (t * 0.8 + i * 0.4) % 1;
-        const maxR = loc.primary ? 28 : 20;
+      // 3. DRONE PATHS
+      drones.forEach(d => {
+        d.progress+=d.speed;
+        if(d.progress>=1){d.progress=0;d.trail=[];d.path=genPath();}
+        const pos=bezier(d.progress,d.path);
+        d.trail.push({...pos});
+        if(d.trail.length>50) d.trail.shift();
+        for(let i=1;i<d.trail.length;i++){
+          ctx.beginPath(); ctx.moveTo(d.trail[i-1].x,d.trail[i-1].y);
+          ctx.lineTo(d.trail[i].x,d.trail[i].y);
+          ctx.strokeStyle=`rgba(244,164,164,${(i/d.trail.length)*0.35})`;
+          ctx.lineWidth=1; ctx.stroke();
+        }
+        ctx.beginPath(); ctx.arc(pos.x,pos.y,3,0,Math.PI*2);
+        ctx.fillStyle='rgba(244,164,164,0.85)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(pos.x,pos.y,7,0,Math.PI*2);
+        ctx.strokeStyle='rgba(244,164,164,0.2)'; ctx.lineWidth=1; ctx.stroke();
+      });
 
-        // Expanding ring
-        ctx.beginPath();
-        ctx.arc(sx, sy, pulse * maxR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(244,164,164,${(1 - pulse) * (loc.primary ? 0.5 : 0.25)})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
+      // 4. RADAR SWEEP
+      const cx=radarCX(), cy=radarCY(), r=radarR();
+      for(let i=1;i<=4;i++){
+        ctx.beginPath(); ctx.arc(cx,cy,r/4*i,0,Math.PI*2);
+        ctx.strokeStyle='rgba(244,164,164,0.07)'; ctx.lineWidth=1; ctx.stroke();
+      }
+      ctx.strokeStyle='rgba(244,164,164,0.05)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(cx-r,cy); ctx.lineTo(cx+r,cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx,cy-r); ctx.lineTo(cx,cy+r); ctx.stroke();
 
-        // Second ring offset
-        const pulse2 = ((t * 0.8 + i * 0.4 + 0.4) % 1);
-        ctx.beginPath();
-        ctx.arc(sx, sy, pulse2 * maxR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(244,164,164,${(1 - pulse2) * (loc.primary ? 0.3 : 0.15)})`;
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
+      // Sweep wedge
+      ctx.save(); ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,radarAngle-1.1,radarAngle); ctx.closePath();
+      const sg=ctx.createLinearGradient(
+        cx+Math.cos(radarAngle-1.1)*r,cy+Math.sin(radarAngle-1.1)*r,
+        cx+Math.cos(radarAngle)*r,cy+Math.sin(radarAngle)*r);
+      sg.addColorStop(0,'rgba(244,164,164,0)');
+      sg.addColorStop(1,'rgba(244,164,164,0.07)');
+      ctx.fillStyle=sg; ctx.fill(); ctx.restore();
+      ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.lineTo(cx+Math.cos(radarAngle)*r,cy+Math.sin(radarAngle)*r);
+      ctx.strokeStyle='rgba(244,164,164,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
 
-        // Centre dot
-        ctx.beginPath();
-        ctx.arc(sx, sy, loc.primary ? 4 : 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = loc.primary ? 'rgba(244,164,164,0.95)' : 'rgba(244,164,164,0.6)';
-        ctx.fill();
-
-        // Label
-        if (loc.primary || W > 360) {
-          ctx.font = loc.primary ? 'bold 10px monospace' : '9px monospace';
-          ctx.fillStyle = loc.primary ? 'rgba(244,164,164,0.9)' : 'rgba(244,164,164,0.5)';
-          ctx.fillText(loc.label, sx + 8, sy - 6);
+      // Radar targets
+      radarTargets.forEach(t => {
+        const tx=cx+t.rx*r, ty=cy+t.ry*r;
+        const ta=Math.atan2(t.ry,t.rx);
+        const diff=((radarAngle-ta)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+        if(diff<0.12){t.lit=radarAngle;t.pulse=0;}
+        const age=t.lit<0?99:((radarAngle-t.lit+Math.PI*2)%(Math.PI*2));
+        const fade=Math.max(0,1-age/(Math.PI*1.5));
+        if(fade>0){
+          ctx.beginPath(); ctx.arc(tx,ty,3,0,Math.PI*2);
+          ctx.fillStyle=`rgba(244,164,164,${fade})`; ctx.fill();
+          t.pulse=(t.pulse||0)+0.5;
+          if(t.pulse>24) t.pulse=0;
+          ctx.beginPath(); ctx.arc(tx,ty,t.pulse,0,Math.PI*2);
+          ctx.strokeStyle=`rgba(244,164,164,${fade*0.3*(1-t.pulse/24)})`;
+          ctx.lineWidth=1; ctx.stroke();
+          ctx.font='9px monospace';
+          ctx.fillStyle=`rgba(244,164,164,${fade*0.7})`;
+          ctx.fillText('UAS',tx+8,ty-4);
         }
       });
 
-      // HQ crosshair
-      const [hx, hy] = toScreen(hq.x, hq.y);
-      ctx.strokeStyle = 'rgba(244,164,164,0.4)';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(hx - 12, hy); ctx.lineTo(hx - 5, hy); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(hx + 5, hy); ctx.lineTo(hx + 12, hy); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(hx, hy - 12); ctx.lineTo(hx, hy - 5); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(hx, hy + 5); ctx.lineTo(hx, hy + 12); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2);
+      ctx.fillStyle='rgba(244,164,164,0.5)'; ctx.fill();
+      ctx.font='9px monospace'; ctx.fillStyle='rgba(244,164,164,0.18)';
+      const hdg=String(Math.round((radarAngle/(Math.PI*2))*360)).padStart(3,'0');
+      ctx.fillText('CANOPY DEFEAT · ACTIVE',cx-r,cy-r-6);
+      ctx.fillText('HDG '+hdg,cx+r-52,cy-r-6);
+      ctx.fillText('ZONE · PERIMETER-A',cx-r,cy+r+14);
 
-      frame = requestAnimationFrame(draw);
+      radarAngle=(radarAngle+0.007)%(Math.PI*2);
+      animFrame=requestAnimationFrame(draw);
     }
 
     function init() {
       resize();
-      if (frame) cancelAnimationFrame(frame);
+      if(animFrame) cancelAnimationFrame(animFrame);
       draw();
     }
 
     window.addEventListener('resize', init);
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) cancelAnimationFrame(frame);
-      else draw();
+      if(document.hidden) cancelAnimationFrame(animFrame); else draw();
     });
-
-    // Only start when sovereign section is visible
-    const sovereign = document.getElementById('sovereign');
-    if (sovereign) {
-      const mapObs = new IntersectionObserver(entries => {
-        entries.forEach(e => {
-          if (e.isIntersecting) { init(); mapObs.unobserve(e.target); }
-        });
-      }, { threshold: 0.1 });
-      mapObs.observe(sovereign);
-    } else {
-      init();
-    }
+    init();
   })();
 </script>
   (function() {
