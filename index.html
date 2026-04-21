@@ -26,9 +26,9 @@
     --cyan: #f4a4a4;
     --cyan-dim: #e07878;
     --cyan-faint: rgba(244,164,164,0.08);
-    --amber: #f5a623;
-    --amber-dim: #c4851c;
-    --emerald: #22c55e;
+    --amber: #f4a4a4;
+    --amber-dim: #e07878;
+    --emerald: #c97a7a;
     --text: #e8eaed;
     --text-muted: #8b9099;
     --text-dim: #5a6070;
@@ -1162,6 +1162,7 @@
 
 <!-- HERO -->
 <section class="hero">
+  <canvas id="hero-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.6;"></canvas>
   <div class="hero-grid"></div>
   <div class="hero-glow"></div>
   <div class="hero-glow-amber"></div>
@@ -1364,7 +1365,7 @@
         <li>MeshConnect AES-256 mesh networking: 500+ nodes</li>
         <li>Wildlife module with species tracking and evidence packages</li>
       </ul>
-      <a href="#contact" style="display:inline-block;margin-top:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(245,158,11,0.3);padding-bottom:2px;">Request a Briefing &#8594;</a>
+      <a href="#contact" style="display:inline-block;margin-top:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(244,164,164,0.3);padding-bottom:2px;">Request a Briefing &#8594;</a>
     </div>
 
     <!-- BEACON -->
@@ -1383,7 +1384,7 @@
         <li>800+ personnel, 150+ appliances, all shift patterns</li>
         <li>Replaces &#163;83K&#8211;&#163;172K in annual legacy system costs</li>
       </ul>
-      <a href="#contact" style="display:inline-block;margin-top:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--emerald);text-decoration:none;border-bottom:1px solid rgba(34,197,94,0.3);padding-bottom:2px;">Request a Briefing &#8594;</a>
+      <a href="#contact" style="display:inline-block;margin-top:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--emerald);text-decoration:none;border-bottom:1px solid rgba(201,122,122,0.3);padding-bottom:2px;">Request a Briefing &#8594;</a>
     </div>
 
     <!-- VR -->
@@ -1407,7 +1408,7 @@
             <li>COMAH chemical hazard with Gaussian plume dispersion</li>
             <li>HMICFRS-compatible reporting and xAPI LMS integration</li>
           </ul>
-          <a href="#contact" style="display:inline-block;margin-top:28px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--emerald);text-decoration:none;border-bottom:1px solid rgba(34,197,94,0.3);padding-bottom:2px;">Request a Briefing &#8594;</a>
+          <a href="#contact" style="display:inline-block;margin-top:28px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--emerald);text-decoration:none;border-bottom:1px solid rgba(201,122,122,0.3);padding-bottom:2px;">Request a Briefing &#8594;</a>
         </div>
       </div>
     </div>
@@ -1433,7 +1434,7 @@
             <li>3D digital twin for monitoring, inspection and planning</li>
             <li>Industrial estates, CNI assets and offshore infrastructure</li>
           </ul>
-          <a href="#contact" style="display:inline-block;margin-top:28px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(245,158,11,0.3);padding-bottom:2px;">Request a Survey Quote &#8594;</a>
+          <a href="#contact" style="display:inline-block;margin-top:28px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(244,164,164,0.3);padding-bottom:2px;">Request a Survey Quote &#8594;</a>
         </div>
       </div>
     </div>
@@ -1993,6 +1994,221 @@
         : 'var(--text-muted)';
     });
   });
+
+  // ── HERO CANVAS: ALL FOUR ANIMATIONS COMBINED ──
+  (function() {
+    const canvas = document.getElementById('hero-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, animFrame;
+
+    // State
+    let radarAngle = 0;
+    const radarTargets = [
+      { rx: 0.72, ry: -0.28, lit: -1, pulse: 0 },
+      { rx: -0.55, ry: 0.35, lit: -1, pulse: 0 },
+      { rx: 0.38, ry: 0.58, lit: -1, pulse: 0 },
+      { rx: -0.68, ry: -0.42, lit: -1, pulse: 0 },
+    ];
+    const radarCX = () => W * 0.78;
+    const radarCY = () => H * 0.5;
+    const radarR = () => Math.min(W * 0.22, H * 0.7);
+
+    // Particles
+    let particles = [];
+    function initParticles() {
+      particles = Array.from({ length: 40 }, () => ({
+        x: Math.random() * W * 0.6,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+      }));
+    }
+
+    // Drones
+    const drones = Array.from({ length: 3 }, () => ({
+      progress: Math.random(),
+      speed: 0.0018 + Math.random() * 0.001,
+      trail: [],
+      path: genPath(),
+    }));
+    function genPath() {
+      return [
+        { x: Math.random() * W * 0.55, y: Math.random() * H },
+        { x: Math.random() * W * 0.55, y: Math.random() * H },
+        { x: Math.random() * W * 0.55, y: Math.random() * H },
+      ];
+    }
+    function bezier(t, p) {
+      const mt = 1 - t;
+      return {
+        x: mt * mt * p[0].x + 2 * mt * t * p[1].x + t * t * p[2].x,
+        y: mt * mt * p[0].y + 2 * mt * t * p[1].y + t * t * p[2].y,
+      };
+    }
+
+    // Grid offset
+    let gridOffset = 0;
+
+    function resize() {
+      W = canvas.offsetWidth;
+      H = canvas.offsetHeight;
+      canvas.width = W;
+      canvas.height = H;
+      initParticles();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // ── 1. ANIMATED GRID (left half, subtle) ──
+      const spacing = 48;
+      ctx.strokeStyle = 'rgba(244,164,164,0.04)';
+      ctx.lineWidth = 1;
+      for (let x = (gridOffset % spacing); x < W * 0.65; x += spacing) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+      }
+      for (let y = 0; y < H; y += spacing) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W * 0.65, y); ctx.stroke();
+      }
+      // Pulse lines
+      const px = (gridOffset * 0.4) % (W * 0.65);
+      ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H);
+      ctx.strokeStyle = 'rgba(244,164,164,0.10)'; ctx.lineWidth = 1; ctx.stroke();
+      const py = (gridOffset * 0.25) % H;
+      ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W * 0.65, py);
+      ctx.strokeStyle = 'rgba(244,164,164,0.07)'; ctx.lineWidth = 1; ctx.stroke();
+      gridOffset += 0.4;
+
+      // ── 2. PARTICLE NETWORK (left half) ──
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W * 0.6) p.vx *= -1;
+        if (p.y < 0 || p.y > H) p.vy *= -1;
+      });
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 90) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(244,164,164,${0.08 * (1 - dist / 90)})`;
+            ctx.lineWidth = 0.8; ctx.stroke();
+          }
+        }
+      }
+      particles.forEach(p => {
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(244,164,164,0.25)'; ctx.fill();
+      });
+
+      // ── 3. DRONE PATHS (left/centre) ──
+      drones.forEach(d => {
+        d.progress += d.speed;
+        if (d.progress >= 1) { d.progress = 0; d.trail = []; d.path = genPath(); }
+        const pos = bezier(d.progress, d.path);
+        d.trail.push({ ...pos });
+        if (d.trail.length > 50) d.trail.shift();
+        for (let i = 1; i < d.trail.length; i++) {
+          ctx.beginPath();
+          ctx.moveTo(d.trail[i - 1].x, d.trail[i - 1].y);
+          ctx.lineTo(d.trail[i].x, d.trail[i].y);
+          ctx.strokeStyle = `rgba(244,164,164,${(i / d.trail.length) * 0.35})`;
+          ctx.lineWidth = 1; ctx.stroke();
+        }
+        ctx.beginPath(); ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(244,164,164,0.85)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(pos.x, pos.y, 7, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(244,164,164,0.2)'; ctx.lineWidth = 1; ctx.stroke();
+      });
+
+      // ── 4. RADAR SWEEP (right side) ──
+      const cx = radarCX(), cy = radarCY(), r = radarR();
+
+      // Rings
+      for (let i = 1; i <= 4; i++) {
+        ctx.beginPath(); ctx.arc(cx, cy, r / 4 * i, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(244,164,164,0.07)'; ctx.lineWidth = 1; ctx.stroke();
+      }
+      // Crosshairs
+      ctx.strokeStyle = 'rgba(244,164,164,0.05)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
+
+      // Sweep wedge
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, radarAngle - 1.1, radarAngle);
+      ctx.closePath();
+      const sg = ctx.createLinearGradient(
+        cx + Math.cos(radarAngle - 1.1) * r, cy + Math.sin(radarAngle - 1.1) * r,
+        cx + Math.cos(radarAngle) * r, cy + Math.sin(radarAngle) * r
+      );
+      sg.addColorStop(0, 'rgba(244,164,164,0)');
+      sg.addColorStop(1, 'rgba(244,164,164,0.07)');
+      ctx.fillStyle = sg; ctx.fill(); ctx.restore();
+
+      // Leading edge
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(radarAngle) * r, cy + Math.sin(radarAngle) * r);
+      ctx.strokeStyle = 'rgba(244,164,164,0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // Targets
+      radarTargets.forEach(t => {
+        const tx = cx + t.rx * r, ty = cy + t.ry * r;
+        const ta = Math.atan2(t.ry, t.rx);
+        const diff = ((radarAngle - ta) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+        if (diff < 0.12) { t.lit = radarAngle; t.pulse = 0; }
+        const age = t.lit < 0 ? 99 : ((radarAngle - t.lit + Math.PI * 2) % (Math.PI * 2));
+        const fade = Math.max(0, 1 - age / (Math.PI * 1.5));
+        if (fade > 0) {
+          ctx.beginPath(); ctx.arc(tx, ty, 3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(244,164,164,${fade})`; ctx.fill();
+          t.pulse = (t.pulse || 0) + 0.5;
+          if (t.pulse > 24) t.pulse = 0;
+          ctx.beginPath(); ctx.arc(tx, ty, t.pulse, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(244,164,164,${fade * 0.3 * (1 - t.pulse / 24)})`;
+          ctx.lineWidth = 1; ctx.stroke();
+          ctx.font = '9px monospace';
+          ctx.fillStyle = `rgba(244,164,164,${fade * 0.7})`;
+          ctx.fillText('UAS', tx + 8, ty - 4);
+        }
+      });
+
+      // Centre dot
+      ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(244,164,164,0.5)'; ctx.fill();
+
+      // HUD overlays
+      ctx.font = '9px monospace';
+      ctx.fillStyle = 'rgba(244,164,164,0.18)';
+      ctx.fillText('CANOPY DEFEAT · ACTIVE', cx - r, cy - r - 6);
+      ctx.fillText(`HDG ${String(Math.round((radarAngle / (Math.PI * 2)) * 360)).padStart(3, '0')}°`, cx + r - 52, cy - r - 6);
+      ctx.fillText('ZONE · PERIMETER-A', cx - r, cy + r + 14);
+
+      radarAngle = (radarAngle + 0.007) % (Math.PI * 2);
+      animFrame = requestAnimationFrame(draw);
+    }
+
+    function init() {
+      resize();
+      if (animFrame) cancelAnimationFrame(animFrame);
+      draw();
+    }
+
+    window.addEventListener('resize', init);
+    // Pause when not visible
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { cancelAnimationFrame(animFrame); }
+      else { draw(); }
+    });
+    init();
+  })();
 </script>
 
 </body>
